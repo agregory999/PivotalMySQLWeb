@@ -203,13 +203,29 @@ public class Utils
                     }
 
                     // just check if it's "aws_aurora" instance
-                    mysqlService = (List) jsonMap.get("aws_aurora");
+                    mysqlService = (List) jsonMap.get("auroramysql");
                     if (mysqlService != null) {
                         cfMySQLMap = (Map) mysqlService.get(0);
                         credentailsMap = (Map) cfMySQLMap.get("credentials");
                         login.setUrl((String) credentailsMap.get("jdbcUrl") + "&connectTimeout=1800000&socketTimeout=1800000&autoReconnect=true&reconnect=true");
                     }
+ 
+                    // check if it's "auroramysql (from AWS SB 2020 release)" instance 
+                    mysqlService = (List) jsonMap.get("aws_aurora");
+                    if (mysqlService != null) {
+                        // get Credential Map
+                        cfMySQLMap = (Map) mysqlService.get(0);
+                        credentailsMap = (Map) cfMySQLMap.get("credentials");
 
+                        //CLUSTER_ENDPOINT / DB_USERNAME / DB_PASSWORD / PORT / DB_NAME
+                        login.setUrl("jdbc:mariadb:aurora//" + (String) credentailsMap.get("CLUSTER_ENDPOINT") \
+                                     + ":" + (String) credentailsMap.get("CLUSTER_ENDPOINT") \
+                                     + "/"  + (String) credentailsMap.get("DB_NAME"));
+                        login.setUsername((String) credentailsMap.get("DB_USERNAME"));
+                        login.setPassword((String) credentailsMap.get("DB_PASSWORD"));
+                        //login.setSchema((String) credentailsMap.get("database"));
+                    }
+                   
                     // just check if it's "mariadb" instance using minibroker
                     mysqlService = (List) jsonMap.get("mariadb");
                     if (mysqlService != null) {
