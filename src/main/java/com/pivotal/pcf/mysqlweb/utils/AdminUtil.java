@@ -18,80 +18,99 @@ limitations under the License.
 package com.pivotal.pcf.mysqlweb.utils;
 
 import com.pivotal.pcf.mysqlweb.beans.Login;
+import com.pivotal.pcf.mysqlweb.controller.AutoLoginController;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
 import java.sql.Connection;
 
-public class AdminUtil
-{
+@Slf4j
 
-    static public SingleConnectionDataSource newSingleConnectionDataSource
-            (String url,
-             String username,
-             String passwd)
-    {
-        SingleConnectionDataSource ds = new SingleConnectionDataSource();
+public class AdminUtil {
 
-        //ds.setDriverClassName("com.mysql.jdbc.Driver");
-        ds.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        ds.setUrl(url);
+	static public SingleConnectionDataSource newSingleConnectionDataSource(String url, String username, String passwd) {
+		// Set up Data source
+		SingleConnectionDataSource ds = new SingleConnectionDataSource();
 
-        if (username != null)
-            ds.setUsername(username);
+		// Select driver class
+		String driverName = "";
+		if (url != null && url.contains("jdbc:mariadb:aurora")) {
+			// Use MariaDB for AWS / RDS
+			driverName = "org.mariadb.jdbc.Driver";
+		} else {
+			// Use the Connector/J
+			driverName = "com.mysql.cj.jdbc.Driver";
+		}
+		ds.setDriverClassName(driverName);
+		log.debug("*** Setting driver for Single: " + driverName);
 
-        if (passwd != null)
-            ds.setPassword(passwd);
+		// Set URL
+		ds.setUrl(url);
 
-        return ds;
-    }
+		if (username != null)
+			ds.setUsername(username);
 
+		if (passwd != null)
+			ds.setPassword(passwd);
 
-    /*
-     * Get connection from ConnectionManager conList Map
-     */
-    static public Connection getConnection(String userKey) throws Exception
-    {
-        Connection conn = null;
-        ConnectionManager cm = ConnectionManager.getInstance();
+		return ds;
+	}
 
-        // check if cfDataSource != null which will mean we have a CF Data Source to use
-        conn = cm.getDataSource(userKey).getConnection();
-        return conn;
-    }
+	/*
+	 * Get connection from ConnectionManager conList Map
+	 */
+	static public Connection getConnection(String userKey) throws Exception {
 
-    /*
-     * Get DataSource from ConnectionManager conList Map
-     */
-    static public javax.sql.DataSource getDataSource(String userKey) throws Exception
-    {
-        javax.sql.DataSource dataSource = null;
-        ConnectionManager cm = ConnectionManager.getInstance();
-        dataSource = cm.getDataSource(userKey);
+		Connection conn = null;
+		ConnectionManager cm = ConnectionManager.getInstance();
 
-        return dataSource;
-    }
+		// check if cfDataSource != null which will mean we have a CF Data Source to use
+		conn = cm.getDataSource(userKey).getConnection();
+		return conn;
+	}
 
-    static public DataSource getDriverManagerDataSourceForCF (Login login) throws Exception
-    {
-        DataSource dataSource = new DataSource();
+	/*
+	 * Get DataSource from ConnectionManager conList Map
+	 */
+	static public javax.sql.DataSource getDataSource(String userKey) throws Exception {
+		javax.sql.DataSource dataSource = null;
+		ConnectionManager cm = ConnectionManager.getInstance();
+		dataSource = cm.getDataSource(userKey);
 
-        //dataSource.setDriverClassName("com.mysql.jdbc.Driver");
-        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+		return dataSource;
+	}
 
-        dataSource.setUrl(login.getUrl());
-        dataSource.setUsername(login.getUsername());
-        dataSource.setPassword(login.getPassword());
-        dataSource.setRemoveAbandoned(true);
-        dataSource.setTimeBetweenEvictionRunsMillis(30000);
-        dataSource.setValidationQuery("SELECT 1");
+	static public DataSource getDriverManagerDataSourceForCF(Login login) throws Exception {
+		// Initialize
+		DataSource dataSource = new DataSource();
 
-        dataSource.setInitialSize(2);
+		// Select driver class
+		String jdbcurl = login.getUrl();
+		if (jdbcurl != null && jdbcurl.contains("jdbc:mariadb:aurora")) {
+			// Use MariaDB for AWS / RDS
+			dataSource.setDriverClassName("org.mariadb.jdbc.Driver");
+		} else {
+			// Use the Connector/J
+			dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+		}
+		log.debug("*** Setting driver for CF: " + dataSource.getDriverClassName());
 
-        // recently added
-        dataSource.setTestWhileIdle(true);
+		dataSource.setUrl(login.getUrl());
+		dataSource.setUsername(login.getUsername());
+		dataSource.setPassword(login.getPassword());
+		dataSource.setRemoveAbandoned(true);
+		dataSource.setTimeBetweenEvictionRunsMillis(30000);
+		dataSource.setValidationQuery("SELECT 1");
 
-        return dataSource;
-    }
+		dataSource.setInitialSize(2);
+
+		// recently added
+		dataSource.setTestWhileIdle(true);
+
+		return dataSource;
+	}
 
 }

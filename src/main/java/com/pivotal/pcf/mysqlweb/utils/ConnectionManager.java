@@ -52,6 +52,7 @@ public class ConnectionManager
 
     public void setupCFDataSource (Login login) throws Exception
     {
+    	log.info("*** setupCF " + login);
         if (cfDataSource == null)
         {
             cfDataSource = AdminUtil.getDriverManagerDataSourceForCF(login);

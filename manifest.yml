@@ -3,9 +3,10 @@ applications:
 - name: pivotal-mysqlweb
   memory: 1024M
   instances: 1
-  random-route: true
+  routes:
+  - route: mysqlweb.apps.tas-aws-west.arg-pivotal.com
   path: ./target/PivotalMySQLWeb-1.0.0-SNAPSHOT.jar
-  services:
-    - pas-mysql
   env:
     JAVA_OPTS: -Djava.security.egd=file:///dev/urandom
+    JBP_CONFIG_SPRING_AUTO_RECONFIGURATION: '{ enabled: false }'
+    SPRING_PROFILES_ACTIVE: cloud

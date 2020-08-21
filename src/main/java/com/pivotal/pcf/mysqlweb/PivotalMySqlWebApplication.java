@@ -25,10 +25,14 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @SpringBootApplication (exclude = {DataSourceAutoConfiguration.class})
 public class PivotalMySqlWebApplication {
 
 	public static void main(String[] args) {
+		log.debug("** Starting Application");
 		SpringApplication.run(PivotalMySqlWebApplication.class, args);
 	}
 
